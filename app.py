@@ -545,7 +545,7 @@ class StaticHandler(tornado.web.StaticFileHandler):
 
 # ─── App Factory ─────────────────────────────────────────────────────────────
 def make_app():
-    static_path = os.path.join(os.path.dirname(__file__), "static")
+    static_path = os.path.join(_HERE, "static")
     return tornado.web.Application([
         # Auth
         (r"/api/auth/signup",   SignupHandler),
