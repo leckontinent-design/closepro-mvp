@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ClosePro — AI Sales Assistant for Nigerian Businesses</title>
+  <style>
+    :root {
+      --blue:   #1A73E8;
+      --blue-d: #1558B0;
+      --green:  #34A853;
+      --dark:   #1C1C1E;
+      --mid:    #4A4A52;
+      --light:  #F8FAFF;
+      --white:  #FFFFFF;
+      --border: #E2E8F0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+           color: var(--dark); background: var(--white); }
+
+    /* ── NAV ── */
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 24px; border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; background: rgba(255,255,255,.95);
+      backdrop-filter: blur(8px); z-index: 100;
+    }
+    .logo { font-size: 1.4rem; font-weight: 800; color: var(--blue); letter-spacing: -0.5px; }
+    .logo span { color: var(--dark); }
+    .nav-cta {
+      background: var(--blue); color: #fff; border: none; padding: 10px 22px;
+      border-radius: 8px; font-size: .9rem; font-weight: 600; cursor: pointer;
+      text-decoration: none;
+    }
+    .nav-cta:hover { background: var(--blue-d); }
+
+    /* ── HERO ── */
+    .hero {
+      background: linear-gradient(135deg, #EFF6FF 0%, #F0FFF4 100%);
+      padding: 72px 24px 60px; text-align: center;
+    }
+    .badge {
+      display: inline-block; background: #DBEAFE; color: var(--blue);
+      font-size: .78rem; font-weight: 700; padding: 5px 14px; border-radius: 50px;
+      margin-bottom: 20px; letter-spacing: .3px;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 900;
+      line-height: 1.1; margin-bottom: 20px; color: var(--dark);
+    }
+    .hero h1 em { color: var(--blue); font-style: normal; }
+    .hero p {
+      font-size: 1.15rem; color: var(--mid); max-width: 560px;
+      margin: 0 auto 36px; line-height: 1.65;
+    }
+    .hero-btns { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      background: var(--blue); color: #fff; padding: 16px 32px;
+      border-radius: 10px; font-size: 1rem; font-weight: 700;
+      text-decoration: none; transition: background .2s, transform .1s;
+    }
+    .btn-primary:hover { background: var(--blue-d); transform: translateY(-1px); }
+    .btn-secondary {
+      background: #fff; color: var(--blue); padding: 16px 32px;
+      border-radius: 10px; font-size: 1rem; font-weight: 600;
+      text-decoration: none; border: 2px solid var(--blue);
+    }
+    .hero-note { margin-top: 18px; font-size: .82rem; color: #888; }
+
+    /* ── PROBLEM SECTION ── */
+    .section { padding: 64px 24px; max-width: 1000px; margin: 0 auto; }
+    .section h2 {
+      font-size: clamp(1.5rem, 3.5vw, 2rem); font-weight: 800;
+      text-align: center; margin-bottom: 12px;
+    }
+    .section .sub {
+      text-align: center; color: var(--mid); font-size: 1rem;
+      max-width: 540px; margin: 0 auto 44px; line-height: 1.6;
+    }
+
+    .pain-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+    .pain-card {
+      background: #FFF8F0; border: 1px solid #FFE4B5;
+      border-radius: 14px; padding: 24px 20px;
+    }
+    .pain-icon { font-size: 2rem; margin-bottom: 10px; }
+    .pain-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 6px; color: #B45309; }
+    .pain-card p { font-size: .9rem; color: var(--mid); line-height: 1.55; }
+
+    /* ── HOW IT WORKS ── */
+    .how-bg { background: var(--light); }
+    .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 28px; }
+    .step {
+      background: #fff; border-radius: 14px; padding: 28px 22px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.06); text-align: center;
+    }
+    .step-num {
+      width: 40px; height: 40px; background: var(--blue); color: #fff;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 1rem; margin: 0 auto 14px;
+    }
+    .step h3 { font-size: .95rem; font-weight: 700; margin-bottom: 8px; }
+    .step p { font-size: .88rem; color: var(--mid); line-height: 1.55; }
+
+    /* ── FEATURES ── */
+    .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+    .feature-card {
+      border: 1px solid var(--border); border-radius: 14px;
+      padding: 26px 22px; transition: box-shadow .2s;
+    }
+    .feature-card:hover { box-shadow: 0 6px 24px rgba(26,115,232,.12); border-color: #BFDBFE; }
+    .feature-icon { font-size: 1.8rem; margin-bottom: 12px; }
+    .feature-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
+    .feature-card p { font-size: .88rem; color: var(--mid); line-height: 1.6; }
+
+    /* ── TESTIMONIALS (placeholder) ── */
+    .testi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; }
+    .testi {
+      background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 24px;
+    }
+    .stars { color: #F59E0B; font-size: 1rem; margin-bottom: 10px; }
+    .testi p { font-size: .9rem; color: var(--mid); line-height: 1.65; font-style: italic; margin-bottom: 14px; }
+    .testi-author { display: flex; align-items: center; gap: 10px; }
+    .avatar {
+      width: 38px; height: 38px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: .9rem; color: #fff;
+    }
+    .testi-name { font-size: .88rem; font-weight: 700; }
+    .testi-biz  { font-size: .78rem; color: #888; }
+
+    /* ── PRICING ── */
+    .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; }
+    .plan {
+      border: 2px solid var(--border); border-radius: 16px;
+      padding: 32px 24px; text-align: center; position: relative;
+    }
+    .plan.popular {
+      border-color: var(--blue);
+      box-shadow: 0 4px 24px rgba(26,115,232,.18);
+    }
+    .popular-badge {
+      position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+      background: var(--blue); color: #fff; font-size: .75rem; font-weight: 700;
+      padding: 4px 16px; border-radius: 50px;
+    }
+    .plan-name { font-size: .85rem; font-weight: 700; color: var(--mid); text-transform: uppercase;
+                 letter-spacing: .5px; margin-bottom: 10px; }
+    .plan-price { font-size: 2.4rem; font-weight: 900; color: var(--dark); }
+    .plan-price span { font-size: 1rem; font-weight: 500; color: var(--mid); }
+    .plan-desc { font-size: .88rem; color: var(--mid); margin: 8px 0 20px; }
+    .plan-features { list-style: none; margin-bottom: 28px; text-align: left; }
+    .plan-features li { font-size: .88rem; padding: 6px 0; color: var(--mid); border-bottom: 1px solid #F0F0F0; }
+    .plan-features li::before { content: "✓  "; color: var(--green); font-weight: 700; }
+    .plan-btn {
+      display: block; background: var(--blue); color: #fff;
+      padding: 13px; border-radius: 10px; font-weight: 700; text-decoration: none;
+      font-size: .95rem;
+    }
+    .plan-btn.outline {
+      background: transparent; border: 2px solid var(--blue); color: var(--blue);
+    }
+
+    /* ── CTA SECTION ── */
+    .cta-section {
+      background: linear-gradient(135deg, var(--blue) 0%, #1558B0 100%);
+      padding: 72px 24px; text-align: center; color: #fff;
+    }
+    .cta-section h2 { font-size: clamp(1.6rem, 4vw, 2.4rem); font-weight: 900; margin-bottom: 14px; }
+    .cta-section p { font-size: 1.05rem; opacity: .85; margin-bottom: 36px; }
+    .btn-white {
+      background: #fff; color: var(--blue); padding: 16px 40px;
+      border-radius: 10px; font-weight: 800; font-size: 1rem; text-decoration: none;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 28px 24px; text-align: center;
+      font-size: .82rem; color: #999; border-top: 1px solid var(--border);
+    }
+
+    /* ── MOBILE ── */
+    @media (max-width: 480px) {
+      .hero { padding: 52px 16px 44px; }
+      .btn-primary, .btn-secondary { width: 100%; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Close<span>Pro</span></div>
+  <a href="/index.html" class="nav-cta">Start Free Trial →</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="badge">🇳🇬 Built for Nigerian Businesses</div>
+  <h1>Stop Losing Sales<br>to <em>Slow Replies</em></h1>
+  <p>ClosePro is an AI-powered sales assistant that writes customer replies in seconds, tracks your leads, and follows up automatically — so you close more deals without stress.</p>
+  <div class="hero-btns">
+    <a href="/index.html" class="btn-primary">Try It Free — No Card Needed</a>
+    <a href="#how" class="btn-secondary">See How It Works</a>
+  </div>
+  <p class="hero-note">✓ Works on any phone or laptop &nbsp; ✓ No technical skills needed &nbsp; ✓ Ready in 2 minutes</p>
+</section>
+
+<!-- PROBLEM -->
+<div style="background:#fff;">
+  <div class="section">
+    <h2>Sound Familiar?</h2>
+    <p class="sub">Every Nigerian business owner knows this pain. ClosePro fixes all of it.</p>
+    <div class="pain-grid">
+      <div class="pain-card">
+        <div class="pain-icon">😩</div>
+        <h3>Too Many Messages, Too Little Time</h3>
+        <p>Customers are asking questions on WhatsApp, Instagram, and DMs all at once. You can't keep up and they go buy from someone else.</p>
+      </div>
+      <div class="pain-card">
+        <div class="pain-icon">🤦</div>
+        <h3>You Forget to Follow Up</h3>
+        <p>You talked to someone who was "interested" but forgot to message them back. Three days later, they bought from your competitor.</p>
+      </div>
+      <div class="pain-card">
+        <div class="pain-icon">😰</div>
+        <h3>No System, Just Chaos</h3>
+        <p>Your leads are scattered across phone contacts, chat apps, and your memory. You have no idea which customers to focus on.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<div class="how-bg" id="how">
+  <div class="section">
+    <h2>How ClosePro Works</h2>
+    <p class="sub">Three simple steps. No training required.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Paste the Customer Message</h3>
+        <p>Copy the message your customer sent — about price, availability, delivery, or anything else.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Get an AI Reply Instantly</h3>
+        <p>ClosePro writes a professional, persuasive reply tailored to your business in seconds.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Track, Follow Up, Close</h3>
+        <p>Add them as a lead. ClosePro reminds you to follow up on Day 3, 7, 10, and 14 automatically.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<div style="background:#fff;">
+  <div class="section">
+    <h2>Everything You Need to Close More Sales</h2>
+    <p class="sub">One dashboard. All your sales tools in one place.</p>
+    <div class="features">
+      <div class="feature-card">
+        <div class="feature-icon">🤖</div>
+        <h3>AI Reply Generator</h3>
+        <p>Paste any customer message and get a professional reply in 3 seconds. Handles price, availability, delivery, and objections.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">👥</div>
+        <h3>Lead Tracker</h3>
+        <p>Track every potential customer — name, phone, interest level, and status. Never lose a hot lead again.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📅</div>
+        <h3>Auto Follow-Up Sequences</h3>
+        <p>One click creates 5 follow-up messages for any lead, spaced across 14 days. Copy and send when prompted.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>Sales Dashboard</h3>
+        <p>See your conversion rate, total leads, replies sent, and upcoming tasks at a glance every morning.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📥</div>
+        <h3>CSV Export</h3>
+        <p>Export all your leads to Excel or Google Sheets anytime. Your data, your hands.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚙️</div>
+        <h3>Customised to Your Business</h3>
+        <p>Set your business name, industry, and tone. ClosePro speaks in your voice — professional, friendly, or casual.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TESTIMONIALS -->
+<div class="how-bg">
+  <div class="section">
+    <h2>Early Users Love It</h2>
+    <p class="sub">Here's what beta testers are saying.</p>
+    <div class="testi-grid">
+      <div class="testi">
+        <div class="stars">★★★★★</div>
+        <p>"Before ClosePro I was replying customers at midnight. Now I just paste the message and the reply is already better than what I would have written myself."</p>
+        <div class="testi-author">
+          <div class="avatar" style="background:#1A73E8;">A</div>
+          <div><div class="testi-name">Amaka O.</div><div class="testi-biz">Fashion & Clothing, Lagos</div></div>
+        </div>
+      </div>
+      <div class="testi">
+        <div class="stars">★★★★★</div>
+        <p>"The follow-up feature is my favourite. I used to forget customers after talking to them. Now ClosePro tells me exactly who to message and what to say."</p>
+        <div class="testi-author">
+          <div class="avatar" style="background:#34A853;">K</div>
+          <div><div class="testi-name">Kelechi M.</div><div class="testi-biz">Electronics Dealer, Abuja</div></div>
+        </div>
+      </div>
+      <div class="testi">
+        <div class="stars">★★★★★</div>
+        <p>"I closed 3 deals in my first week of using it. Just from the follow-up reminders alone. My conversion rate has never been this high."</p>
+        <div class="testi-author">
+          <div class="avatar" style="background:#FF6D00;">T</div>
+          <div><div class="testi-name">Tunde A.</div><div class="testi-biz">Building Materials, Port Harcourt</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PRICING -->
+<div style="background:#fff;">
+  <div class="section" id="pricing">
+    <h2>Simple, Honest Pricing</h2>
+    <p class="sub">Start free. Upgrade when you're ready. No hidden fees, no contract.</p>
+    <div class="pricing-grid">
+      <div class="plan">
+        <div class="plan-name">Starter</div>
+        <div class="plan-price">Free</div>
+        <div class="plan-desc">Perfect for trying it out</div>
+        <ul class="plan-features">
+          <li>Up to 20 leads</li>
+          <li>AI Reply Generator</li>
+          <li>Basic follow-up reminders</li>
+          <li>Sales Dashboard</li>
+        </ul>
+        <a href="/index.html" class="plan-btn outline">Get Started Free</a>
+      </div>
+      <div class="plan popular">
+        <div class="popular-badge">⚡ Most Popular</div>
+        <div class="plan-name">Growth</div>
+        <div class="plan-price">₦5,000<span>/month</span></div>
+        <div class="plan-desc">For serious sales hustlers</div>
+        <ul class="plan-features">
+          <li>Unlimited leads</li>
+          <li>AI Reply Generator</li>
+          <li>Auto follow-up sequences</li>
+          <li>CSV Export</li>
+          <li>Priority support</li>
+        </ul>
+        <a href="/index.html" class="plan-btn">Start 7-Day Free Trial</a>
+      </div>
+      <div class="plan">
+        <div class="plan-name">Business</div>
+        <div class="plan-price">₦12,000<span>/month</span></div>
+        <div class="plan-desc">For teams and agencies</div>
+        <ul class="plan-features">
+          <li>Everything in Growth</li>
+          <li>3 team members</li>
+          <li>Advanced AI (GPT-4)</li>
+          <li>Custom branding</li>
+          <li>Dedicated support</li>
+        </ul>
+        <a href="/index.html" class="plan-btn outline">Contact Us</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2>Ready to Close More Sales?</h2>
+  <p>Join hundreds of Nigerian business owners already using ClosePro.<br>No credit card. No setup fees. Just results.</p>
+  <a href="/index.html" class="btn-white">Start Your Free Trial →</a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>© 2026 ClosePro · Built for Nigerian Businesses · <a href="mailto:hello@closepro.ng" style="color:var(--blue);">hello@closepro.ng</a></p>
+</footer>
+
+</body>
+</html>
