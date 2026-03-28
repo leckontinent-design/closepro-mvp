@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ClosePro — AI Sales Assistant</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet"/>
+<style>
+:root{--bg:#0f172a;--surface:#1e293b;--surface2:#334155;--border:#475569;--primary:#10b981;--primary-dark:#059669;--amber:#f59e0b;--red:#ef4444;--text:#f1f5f9;--text2:#94a3b8;--text3:#64748b;--radius:10px;--shadow:0 4px 24px rgba(0,0,0,.3)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+a{color:var(--primary);text-decoration:none}
+button{cursor:pointer;font-family:inherit}
+input,select,textarea{font-family:inherit}
+
+.auth-page{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.auth-card{background:var(--surface);border-radius:16px;padding:40px;width:100%;max-width:420px;box-shadow:var(--shadow)}
+.auth-card h1{text-align:center;font-size:28px;margin-bottom:4px;color:var(--primary)}
+.auth-card p{text-align:center;color:var(--text2);margin-bottom:24px;font-size:14px}
+.auth-card .logo{text-align:center;font-size:40px;margin-bottom:12px}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:13px;font-weight:600;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:12px 14px;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:15px;transition:border .2s}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--primary)}
+.form-group textarea{resize:vertical;min-height:80px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 24px;border-radius:8px;font-weight:600;font-size:14px;border:none;transition:all .2s}
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-dark)}
+.btn-secondary{background:var(--surface2);color:var(--text)}.btn-secondary:hover{background:var(--border)}
+.btn-amber{background:var(--amber);color:#000}.btn-amber:hover{opacity:.9}
+.btn-danger{background:var(--red);color:#fff}.btn-danger:hover{opacity:.9}
+.btn-sm{padding:8px 14px;font-size:13px}
+.btn-full{width:100%}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+.layout{display:flex;min-height:100vh}
+.sidebar{width:240px;background:var(--surface);border-right:1px solid var(--border);padding:20px 0;flex-shrink:0;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:10}
+.sidebar .logo{padding:0 20px;font-size:22px;font-weight:800;color:var(--primary);margin-bottom:8px}
+.sidebar .tagline{padding:0 20px;font-size:12px;color:var(--text3);margin-bottom:24px}
+.nav-item{display:flex;align-items:center;gap:12px;padding:12px 20px;font-size:14px;color:var(--text2);cursor:pointer;transition:all .15s;border-left:3px solid transparent}
+.nav-item:hover{background:rgba(16,185,129,.08);color:var(--text)}
+.nav-item.active{color:var(--primary);background:rgba(16,185,129,.12);border-left-color:var(--primary);font-weight:600}
+.nav-item i{width:20px;text-align:center;font-size:16px}
+.sidebar-footer{margin-top:auto;padding:16px 20px;border-top:1px solid var(--border)}
+.sidebar-footer .plan-badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;background:rgba(16,185,129,.15);color:var(--primary);text-transform:uppercase;margin-bottom:8px}
+.sidebar-footer .user-email{font-size:12px;color:var(--text3)}
+
+.main{margin-left:240px;flex:1;padding:28px 32px;min-height:100vh}
+.page-header{margin-bottom:24px}
+.page-header h2{font-size:22px;font-weight:700;margin-bottom:4px}
+.page-header p{font-size:14px;color:var(--text2)}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px}
+.kpi-card{background:var(--surface);border-radius:var(--radius);padding:20px;border:1px solid var(--border)}
+.kpi-card .kpi-value{font-size:28px;font-weight:800;margin-bottom:4px}
+.kpi-card .kpi-label{font-size:13px;color:var(--text2)}
+.kpi-card.green .kpi-value{color:var(--primary)}
+.kpi-card.amber .kpi-value{color:var(--amber)}
+.kpi-card.red .kpi-value{color:var(--red)}
+
+.card{background:var(--surface);border-radius:var(--radius);padding:20px;border:1px solid var(--border);margin-bottom:20px}
+.card h3{font-size:16px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.card h3 i{color:var(--primary)}
+
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);padding:12px 14px;border-bottom:2px solid var(--border);font-weight:600}
+td{padding:12px 14px;border-bottom:1px solid rgba(71,85,105,.3);font-size:14px}
+tr:hover td{background:rgba(16,185,129,.04)}
+.status-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;text-transform:capitalize}
+.status-new{background:rgba(59,130,246,.15);color:#60a5fa}
+.status-contacted{background:rgba(245,158,11,.15);color:#fbbf24}
+.status-hot{background:rgba(239,68,68,.15);color:#f87171}
+.status-converted{background:rgba(16,185,129,.15);color:#34d399}
+.status-cold{background:rgba(100,116,139,.15);color:#94a3b8}
+
+.ai-box{background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(245,158,11,.08));border:1px solid var(--primary);border-radius:var(--radius);padding:24px;margin-bottom:20px}
+.ai-reply{background:var(--bg);border-radius:8px;padding:16px;margin-top:16px;white-space:pre-wrap;line-height:1.7;border-left:3px solid var(--primary)}
+.ai-reply .copy-btn{float:right;font-size:12px;color:var(--primary);cursor:pointer;background:none;border:none;padding:4px 8px}
+
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
+.modal{background:var(--surface);border-radius:16px;padding:28px;width:100%;max-width:500px;box-shadow:var(--shadow);max-height:90vh;overflow-y:auto}
+.modal h3{font-size:18px;margin-bottom:16px}
+
+.followup-card{background:var(--bg);border-radius:8px;padding:16px;margin-bottom:12px;border-left:3px solid var(--amber)}
+.followup-card .fu-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.followup-card .fu-name{font-weight:600;font-size:14px}
+.followup-card .fu-date{font-size:12px;color:var(--text3)}
+.followup-card .fu-message{font-size:13px;color:var(--text2);margin-bottom:10px;line-height:1.5}
+.followup-card .fu-actions{display:flex;gap:8px}
+
+.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px}
+.pricing-card{background:var(--bg);border-radius:var(--radius);padding:24px;border:2px solid var(--border);text-align:center;transition:border .2s}
+.pricing-card:hover{border-color:var(--primary)}
+.pricing-card.current{border-color:var(--primary);background:rgba(16,185,129,.05)}
+.pricing-card h4{font-size:18px;margin-bottom:8px}
+.pricing-card .price{font-size:32px;font-weight:800;color:var(--primary);margin-bottom:4px}
+.pricing-card .period{font-size:13px;color:var(--text3);margin-bottom:16px}
+.pricing-card ul{list-style:none;text-align:left;margin-bottom:20px}
+.pricing-card li{padding:6px 0;font-size:13px;color:var(--text2)}
+.pricing-card li i{color:var(--primary);margin-right:8px;width:16px}
+
+.toast{position:fixed;bottom:24px;right:24px;background:var(--primary);color:#fff;padding:14px 24px;border-radius:10px;font-weight:600;font-size:14px;z-index:200;animation:slideUp .3s ease;box-shadow:var(--shadow)}
+@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+.empty-state{text-align:center;padding:40px 20px;color:var(--text3)}
+.empty-state i{font-size:48px;margin-bottom:12px;opacity:.4}
+.empty-state p{margin-bottom:16px}
+
+.row{display:flex;gap:16px;flex-wrap:wrap}
+.row>.card{flex:1;min-width:300px}
+
+.hamburger{display:none;position:fixed;top:16px;left:16px;z-index:20;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:18px}
+
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%);transition:transform .3s}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0;padding:20px 16px;padding-top:60px}
+  .hamburger{display:block}
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .pricing-grid{grid-template-columns:1fr}
+  .row>.card{min-width:100%}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useCallback, useRef } = React;
+
+// ─── API Helper ─────────────────────────────────────────────────────────────
+const API = (path, opts = {}) => {
+  const token = sessionStorage.getItem('token');
+  const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  return fetch(`/api${path}`, { ...opts, headers }).then(async r => {
+    if (r.status === 401) { sessionStorage.clear(); window.location.reload(); }
+    const data = r.headers.get('content-type')?.includes('json') ? await r.json() : await r.text();
+    if (!r.ok) throw new Error(data.error || 'Request failed');
+    return data;
+  });
+};
+
+// ─── Toast ──────────────────────────────────────────────────────────────────
+function Toast({ message, onClose }) {
+  useEffect(() => { const t = setTimeout(onClose, 3000); return () => clearTimeout(t); }, []);
+  return <div className="toast">{message}</div>;
+}
+
+// ─── Modal ──────────────────────────────────────────────────────────────────
+function Modal({ children, onClose }) {
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={e => e.stopPropagation()}>{children}</div>
+    </div>
+  );
+}
+
+// ─── Auth Page ──────────────────────────────────────────────────────────────
+function AuthPage({ onLogin }) {
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [businessName, setBusinessName] = useState('');
+  const [industry, setIndustry] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const submit = async e => {
+    e.preventDefault();
+    setError(''); setLoading(true);
+    try {
+      const endpoint = isLogin ? '/auth/login' : '/auth/signup';
+      const body = isLogin
+        ? { email, password }
+        : { email, password, business_name: businessName, industry };
+      const data = await API(endpoint, { method: 'POST', body: JSON.stringify(body) });
+      sessionStorage.setItem('token', data.token);
+      onLogin(data);
+    } catch (err) { setError(err.message); }
+    setLoading(false);
+  };
+
+  return (
+    <div className="auth-page">
+      <form className="auth-card" onSubmit={submit}>
+        <div className="logo"><i className="fas fa-bolt" style={{color:'#10b981'}}/></div>
+        <h1>ClosePro</h1>
+        <p>{isLogin ? 'Sign in to your sales dashboard' : 'Create your account — start closing deals'}</p>
+        {error && <p style={{color:'#ef4444',textAlign:'center',marginBottom:16,fontSize:14}}>{error}</p>}
+        {!isLogin && <>
+          <div className="form-group">
+            <label>Business Name</label>
+            <input value={businessName} onChange={e=>setBusinessName(e.target.value)} placeholder="e.g. Zara's Boutique"/>
+          </div>
+          <div className="form-group">
+            <label>Industry</label>
+            <select value={industry} onChange={e=>setIndustry(e.target.value)}>
+              <option value="">Select industry</option>
+              <option>Fashion & Clothing</option><option>Real Estate</option>
+              <option>Food & Restaurant</option><option>Beauty & Salon</option>
+              <option>Automotive</option><option>Education</option>
+              <option>Logistics</option><option>Health & Pharmacy</option>
+              <option>Technology</option><option>Other</option>
+            </select>
+          </div>
+        </>}
+        <div className="form-group">
+          <label>Email</label>
+          <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@business.com" required/>
+        </div>
+        <div className="form-group">
+          <label>Password</label>
+          <input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Min 6 characters" required/>
+        </div>
+        <button className="btn btn-primary btn-full" disabled={loading} type="submit">
+          {loading ? <><i className="fas fa-spinner fa-spin"/> Loading...</> : isLogin ? 'Sign In' : 'Create Account'}
+        </button>
+        <p style={{textAlign:'center',marginTop:16,fontSize:14,color:'var(--text2)'}}>
+          {isLogin ? "Don't have an account? " : 'Already have an account? '}
+          <a href="#" onClick={e=>{e.preventDefault();setIsLogin(!isLogin);setError('')}}>
+            {isLogin ? 'Sign Up' : 'Sign In'}
+          </a>
+        </p>
+      </form>
+    </div>
+  );
+}
+
+// ─── Dashboard ──────────────────────────────────────────────────────────────
+function Dashboard() {
+  const [data, setData] = useState(null);
+  useEffect(() => { API('/dashboard').then(setData); }, []);
+
+  if (!data) return <div className="empty-state"><i className="fas fa-spinner fa-spin"/><p>Loading dashboard...</p></div>;
+  return <>
+    <div className="page-header">
+      <h2>Dashboard</h2>
+      <p>Your sales performance at a glance</p>
+    </div>
+    <div className="kpi-grid">
+      <div className="kpi-card green"><div className="kpi-value">{data.total_leads}</div><div className="kpi-label">Total Leads</div></div>
+      <div className="kpi-card amber"><div className="kpi-value">{data.active_leads}</div><div className="kpi-label">Active Leads</div></div>
+      <div className="kpi-card green"><div className="kpi-value">{data.conversion_rate}%</div><div className="kpi-label">Conversion Rate</div></div>
+      <div className="kpi-card amber"><div className="kpi-value">{data.pending_followups}</div><div className="kpi-label">Pending Follow-ups</div></div>
+      <div className="kpi-card green"><div className="kpi-value">{data.total_conversations}</div><div className="kpi-label">AI Replies Generated</div></div>
+      <div className="kpi-card green"><div className="kpi-value">{'\u20A6'}{(data.total_revenue||0).toLocaleString()}</div><div className="kpi-label">Revenue (Converted)</div></div>
+    </div>
+    <div className="row">
+      <div className="card">
+        <h3><i className="fas fa-users"/> Recent Leads</h3>
+        {data.recent_leads.length === 0
+          ? <div className="empty-state"><i className="fas fa-user-plus"/><p>No leads yet. Add your first lead!</p></div>
+          : <div className="table-wrap"><table><thead><tr><th>Name</th><th>Product</th><th>Status</th><th>Date</th></tr></thead><tbody>
+              {data.recent_leads.map(l =>
+                <tr key={l.id}><td>{l.name}</td><td>{l.product_interest||'—'}</td>
+                <td><span className={`status-badge status-${l.status}`}>{l.status}</span></td>
+                <td style={{fontSize:12,color:'var(--text3)'}}>{new Date(l.created_at).toLocaleDateString()}</td></tr>
+              )}
+            </tbody></table></div>
+        }
+      </div>
+      <div className="card">
+        <h3><i className="fas fa-clock"/> Upcoming Follow-ups</h3>
+        {data.upcoming_followups.length === 0
+          ? <div className="empty-state"><i className="fas fa-bell"/><p>No upcoming follow-ups</p></div>
+          : data.upcoming_followups.map(f =>
+              <div className="followup-card" key={f.id}>
+                <div className="fu-header"><span className="fu-name">{f.lead_name}</span><span className="fu-date">{new Date(f.scheduled_date).toLocaleDateString()}</span></div>
+                <div className="fu-message">{f.message?.substring(0,100)}...</div>
+              </div>
+            )
+        }
+      </div>
+    </div>
+  </>;
+}
+
+// ─── AI Reply Generator ─────────────────────────────────────────────────────
+function AIReply({ leads }) {
+  const [msg, setMsg] = useState('');
+  const [leadId, setLeadId] = useState('');
+  const [reply, setReply] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const generate = async () => {
+    if (!msg.trim()) return;
+    setLoading(true); setReply('');
+    try {
+      const data = await API('/ai/reply', {
+        method: 'POST', body: JSON.stringify({ message: msg, lead_id: leadId || null })
+      });
+      setReply(data.reply);
+    } catch (err) { setReply('Error: ' + err.message); }
+    setLoading(false);
+  };
+
+  const copy = () => {
+    navigator.clipboard.writeText(reply);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return <>
+    <div className="page-header">
+      <h2><i className="fas fa-robot" style={{color:'var(--primary)',marginRight:8}}/>AI Reply Generator</h2>
+      <p>Paste a customer message and get an instant, smart sales reply</p>
+    </div>
+    <div className="ai-box">
+      <div className="form-group">
+        <label>Link to a Lead (optional)</label>
+        <select value={leadId} onChange={e=>setLeadId(e.target.value)}>
+          <option value="">— None —</option>
+          {leads.map(l => <option key={l.id} value={l.id}>{l.name}{l.product_interest ? ` (${l.product_interest})` : ''}</option>)}
+        </select>
+      </div>
+      <div className="form-group">
+        <label>Customer Message</label>
+        <textarea value={msg} onChange={e=>setMsg(e.target.value)} rows={4}
+          placeholder='e.g. "How much is the Ankara dress? Do you have it in size 12?"'/>
+      </div>
+      <button className="btn btn-primary" onClick={generate} disabled={loading || !msg.trim()}>
+        {loading ? <><i className="fas fa-spinner fa-spin"/> Generating...</> : <><i className="fas fa-magic"/> Generate Reply</>}
+      </button>
+      {reply && <div className="ai-reply">
+        <button className="copy-btn" onClick={copy}><i className="fas fa-copy"/> {copied ? 'Copied!' : 'Copy'}</button>
+        {reply}
+      </div>}
+    </div>
+  </>;
+}
+
+// ─── Lead Tracker ───────────────────────────────────────────────────────────
+function LeadTracker({ leads, refreshLeads, showToast }) {
+  const [showModal, setShowModal] = useState(false);
+  const [editLead, setEditLead] = useState(null);
+  const [filter, setFilter] = useState('');
+  const [form, setForm] = useState({ name:'',phone:'',email:'',product_interest:'',status:'new',source:'whatsapp',notes:'',deal_value:0 });
+  const [seqLoading, setSeqLoading] = useState(null);
+
+  const openNew = () => { setEditLead(null); setForm({ name:'',phone:'',email:'',product_interest:'',status:'new',source:'whatsapp',notes:'',deal_value:0 }); setShowModal(true); };
+  const openEdit = l => { setEditLead(l); setForm({...l}); setShowModal(true); };
+
+  const save = async () => {
+    try {
+      if (editLead) {
+        await API(`/leads/${editLead.id}`, { method:'PUT', body:JSON.stringify(form) });
+      } else {
+        await API('/leads', { method:'POST', body:JSON.stringify(form) });
+      }
+      setShowModal(false); refreshLeads();
+      showToast(editLead ? 'Lead updated!' : 'Lead added!');
+    } catch (err) { alert(err.message); }
+  };
+
+  const deleteLead = async id => {
+    if (!confirm('Delete this lead and all related data?')) return;
+    await API(`/leads/${id}`, { method:'DELETE' });
+    refreshLeads(); showToast('Lead deleted');
+  };
+
+  const generateSeq = async id => {
+    setSeqLoading(id);
+    try {
+      const data = await API('/ai/followup-sequence', { method:'POST', body:JSON.stringify({ lead_id:id }) });
+      showToast(`${data.count} follow-up messages queued!`);
+      refreshLeads();
+    } catch(err) { alert(err.message); }
+    setSeqLoading(null);
+  };
+
+  const filtered = filter ? leads.filter(l => l.status === filter) : leads;
+
+  return <>
+    <div className="page-header" style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:12}}>
+      <div><h2>Lead Tracker</h2><p>Manage all your leads in one place</p></div>
+      <div style={{display:'flex',gap:8}}>
+        <button className="btn btn-primary btn-sm" onClick={openNew}><i className="fas fa-plus"/> Add Lead</button>
+        <a href="/api/export/leads" className="btn btn-secondary btn-sm"><i className="fas fa-download"/> Export CSV</a>
+      </div>
+    </div>
+    <div style={{display:'flex',gap:8,marginBottom:16,flexWrap:'wrap'}}>
+      {['','new','contacted','hot','converted','cold'].map(s =>
+        <button key={s} className={`btn btn-sm ${filter===s?'btn-primary':'btn-secondary'}`} onClick={()=>setFilter(s)}>
+          {s || 'All'} {s ? `(${leads.filter(l=>l.status===s).length})` : `(${leads.length})`}
+        </button>
+      )}
+    </div>
+    {filtered.length === 0
+      ? <div className="card empty-state"><i className="fas fa-user-slash"/><p>No leads found. Add your first lead to get started!</p>
+          <button className="btn btn-primary" onClick={openNew}><i className="fas fa-plus"/> Add Lead</button></div>
+      : <div className="card table-wrap"><table><thead><tr>
+          <th>Name</th><th>Phone</th><th>Product</th><th>Status</th><th>Value</th><th>Actions</th>
+        </tr></thead><tbody>
+          {filtered.map(l => <tr key={l.id}>
+            <td style={{fontWeight:600}}>{l.name}</td>
+            <td>{l.phone||'—'}</td>
+            <td>{l.product_interest||'—'}</td>
+            <td><span className={`status-badge status-${l.status}`}>{l.status}</span></td>
+            <td>{l.deal_value ? `\u20A6${Number(l.deal_value).toLocaleString()}` : '—'}</td>
+            <td style={{whiteSpace:'nowrap'}}>
+              <button className="btn btn-sm btn-secondary" onClick={()=>openEdit(l)} title="Edit"><i className="fas fa-pen"/></button>{' '}
+              <button className="btn btn-sm btn-amber" onClick={()=>generateSeq(l.id)} disabled={seqLoading===l.id} title="Generate follow-up sequence">
+                {seqLoading===l.id ? <i className="fas fa-spinner fa-spin"/> : <i className="fas fa-paper-plane"/>}
+              </button>{' '}
+              <button className="btn btn-sm btn-danger" onClick={()=>deleteLead(l.id)} title="Delete"><i className="fas fa-trash"/></button>
+            </td>
+          </tr>)}
+        </tbody></table></div>
+    }
+    {showModal && <Modal onClose={()=>setShowModal(false)}>
+      <h3>{editLead ? 'Edit Lead' : 'Add New Lead'}</h3>
+      <div className="form-group"><label>Name *</label><input value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/></div>
+      <div className="form-group"><label>Phone</label><input value={form.phone} onChange={e=>setForm({...form,phone:e.target.value})} placeholder="+234..."/></div>
+      <div className="form-group"><label>Email</label><input value={form.email} onChange={e=>setForm({...form,email:e.target.value})}/></div>
+      <div className="form-group"><label>Product Interest</label><input value={form.product_interest} onChange={e=>setForm({...form,product_interest:e.target.value})} placeholder="What are they interested in?"/></div>
+      <div className="form-group"><label>Status</label>
+        <select value={form.status} onChange={e=>setForm({...form,status:e.target.value})}>
+          <option value="new">New</option><option value="contacted">Contacted</option>
+          <option value="hot">Hot</option><option value="converted">Converted</option>
+          <option value="cold">Cold</option>
+        </select>
+      </div>
+      <div className="form-group"><label>Source</label>
+        <select value={form.source} onChange={e=>setForm({...form,source:e.target.value})}>
+          <option value="whatsapp">WhatsApp</option><option value="instagram">Instagram</option>
+          <option value="facebook">Facebook</option><option value="website">Website</option>
+          <option value="referral">Referral</option><option value="other">Other</option>
+        </select>
+      </div>
+      <div className="form-group"><label>Deal Value ({'\u20A6'})</label><input type="number" value={form.deal_value} onChange={e=>setForm({...form,deal_value:Number(e.target.value)})}/></div>
+      <div className="form-group"><label>Notes</label><textarea value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})}/></div>
+      <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
+        <button className="btn btn-secondary" onClick={()=>setShowModal(false)}>Cancel</button>
+        <button className="btn btn-primary" onClick={save} disabled={!form.name}>{editLead ? 'Update' : 'Add Lead'}</button>
+      </div>
+    </Modal>}
+  </>;
+}
+
+// ─── Follow-ups ─────────────────────────────────────────────────────────────
+function FollowUps({ showToast }) {
+  const [followups, setFollowups] = useState([]);
+  const [tab, setTab] = useState('pending');
+
+  const load = () => API(`/followups?status=${tab}`).then(setFollowups);
+  useEffect(() => { load(); }, [tab]);
+
+  const markSent = async id => {
+    await API(`/followups/${id}/send`, { method:'POST' });
+    showToast('Marked as sent!'); load();
+  };
+  const skip = async id => {
+    await API(`/followups/${id}/skip`, { method:'POST' });
+    showToast('Follow-up skipped'); load();
+  };
+
+  return <>
+    <div className="page-header">
+      <h2>Follow-Up Queue</h2>
+      <p>Automated follow-up messages for your leads</p>
+    </div>
+    <div style={{display:'flex',gap:8,marginBottom:16}}>
+      {['pending','sent','skipped'].map(s =>
+        <button key={s} className={`btn btn-sm ${tab===s?'btn-primary':'btn-secondary'}`} onClick={()=>setTab(s)}>
+          {s.charAt(0).toUpperCase()+s.slice(1)}
+        </button>
+      )}
+    </div>
+    <div className="card">
+      {followups.length === 0
+        ? <div className="empty-state"><i className="fas fa-bell-slash"/><p>No {tab} follow-ups. Generate sequences from the Lead Tracker!</p></div>
+        : followups.map(f =>
+            <div className="followup-card" key={f.id}>
+              <div className="fu-header">
+                <span className="fu-name"><i className="fas fa-user" style={{marginRight:6,color:'var(--text3)'}}/>{f.lead_name}</span>
+                <span className="fu-date"><i className="fas fa-calendar" style={{marginRight:4}}/>{new Date(f.scheduled_date).toLocaleDateString()}</span>
+              </div>
+              <div className="fu-message">{f.message}</div>
+              {tab === 'pending' && <div className="fu-actions">
+                <button className="btn btn-sm btn-primary" onClick={()=>markSent(f.id)}><i className="fas fa-check"/> Mark Sent</button>
+                <button className="btn btn-sm btn-secondary" onClick={()=>skip(f.id)}><i className="fas fa-forward"/> Skip</button>
+                <button className="btn btn-sm btn-secondary" onClick={()=>navigator.clipboard.writeText(f.message).then(()=>showToast('Copied!'))}><i className="fas fa-copy"/> Copy</button>
+              </div>}
+            </div>
+          )
+      }
+    </div>
+  </>;
+}
+
+// ─── Subscription ───────────────────────────────────────────────────────────
+function Subscription({ user, showToast }) {
+  const [sub, setSub] = useState(null);
+  useEffect(() => { API('/subscription').then(setSub); }, []);
+
+  const plans = [
+    { id:'starter', name:'Starter', price:'5,000', features:['50 leads/month','3-msg sequences','Basic tracking','WhatsApp alerts','Weekly reports'] },
+    { id:'growth', name:'Growth', price:'12,000', features:['250 leads/month','5-msg AI sequences','AI personalization','Real-time alerts','Full dashboard','Priority support'] },
+    { id:'pro', name:'Pro', price:'25,000', features:['Unlimited leads','Custom sequences','Team access (3 users)','Advanced analytics','API access','Dedicated support'] },
+  ];
+
+  const changePlan = async planId => {
+    await API('/subscription', { method:'POST', body:JSON.stringify({ plan:planId }) });
+    const newSub = await API('/subscription');
+    setSub(newSub);
+    showToast(`Upgraded to ${planId} plan!`);
+  };
+
+  return <>
+    <div className="page-header">
+      <h2>Subscription</h2>
+      <p>Choose the plan that fits your business</p>
+    </div>
+    {sub && <div className="card" style={{marginBottom:20}}>
+      <p>Current plan: <strong style={{color:'var(--primary)',textTransform:'uppercase'}}>{sub.plan}</strong>
+      {sub.expires_at && <> — Expires: {new Date(sub.expires_at).toLocaleDateString()}</>}</p>
+    </div>}
+    <div className="pricing-grid">
+      {plans.map(p =>
+        <div key={p.id} className={`pricing-card ${sub?.plan===p.id?'current':''}`}>
+          <h4>{p.name}</h4>
+          <div className="price">{'\u20A6'}{p.price}</div>
+          <div className="period">per month</div>
+          <ul>{p.features.map((f,i) => <li key={i}><i className="fas fa-check"/> {f}</li>)}</ul>
+          {sub?.plan === p.id
+            ? <button className="btn btn-secondary btn-full" disabled>Current Plan</button>
+            : <button className="btn btn-primary btn-full" onClick={()=>changePlan(p.id)}>
+                {plans.findIndex(x=>x.id===sub?.plan) < plans.findIndex(x=>x.id===p.id) ? 'Upgrade' : 'Switch'} to {p.name}
+              </button>
+          }
+        </div>
+      )}
+    </div>
+  </>;
+}
+
+// ─── Settings ───────────────────────────────────────────────────────────────
+function Settings({ user, refreshUser, showToast }) {
+  const [form, setForm] = useState({ business_name:'', industry:'', tone:'friendly' });
+
+  useEffect(() => {
+    if (user) setForm({ business_name:user.business_name||'', industry:user.industry||'', tone:user.tone||'friendly' });
+  }, [user]);
+
+  const save = async () => {
+    await API('/auth/settings', { method:'PUT', body:JSON.stringify(form) });
+    refreshUser(); showToast('Settings saved!');
+  };
+
+  return <>
+    <div className="page-header"><h2>Settings</h2><p>Configure your ClosePro account</p></div>
+    <div className="card" style={{maxWidth:500}}>
+      <h3><i className="fas fa-cog"/> Business Settings</h3>
+      <div className="form-group"><label>Business Name</label><input value={form.business_name} onChange={e=>setForm({...form,business_name:e.target.value})}/></div>
+      <div className="form-group"><label>Industry</label>
+        <select value={form.industry} onChange={e=>setForm({...form,industry:e.target.value})}>
+          <option value="">Select</option><option>Fashion & Clothing</option><option>Real Estate</option>
+          <option>Food & Restaurant</option><option>Beauty & Salon</option><option>Automotive</option>
+          <option>Education</option><option>Logistics</option><option>Health & Pharmacy</option>
+          <option>Technology</option><option>Other</option>
+        </select>
+      </div>
+      <div className="form-group"><label>AI Tone</label>
+        <select value={form.tone} onChange={e=>setForm({...form,tone:e.target.value})}>
+          <option value="friendly">Friendly & Warm</option>
+          <option value="professional">Professional & Formal</option>
+          <option value="casual">Casual & Pidgin-friendly</option>
+          <option value="persuasive">Persuasive & Sales-focused</option>
+        </select>
+      </div>
+      <button className="btn btn-primary" onClick={save}><i className="fas fa-save"/> Save Settings</button>
+    </div>
+  </>;
+}
+
+// ─── App ────────────────────────────────────────────────────────────────────
+function App() {
+  const [authed, setAuthed] = useState(!!sessionStorage.getItem('token'));
+  const [user, setUser] = useState(null);
+  const [page, setPage] = useState('dashboard');
+  const [leads, setLeads] = useState([]);
+  const [toast, setToast] = useState('');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const showToast = msg => { setToast(msg); setTimeout(()=>setToast(''), 3500); };
+  const refreshLeads = () => API('/leads').then(setLeads);
+  const refreshUser = () => API('/auth/me').then(setUser);
+
+  useEffect(() => {
+    if (authed) { refreshUser(); refreshLeads(); }
+  }, [authed]);
+
+  if (!authed) return <AuthPage onLogin={d => { setAuthed(true); }} />;
+
+  const nav = [
+    { id:'dashboard', icon:'fa-th-large', label:'Dashboard' },
+    { id:'ai-reply', icon:'fa-robot', label:'AI Reply Generator' },
+    { id:'leads', icon:'fa-users', label:'Lead Tracker' },
+    { id:'followups', icon:'fa-paper-plane', label:'Follow-Ups' },
+    { id:'subscription', icon:'fa-crown', label:'Subscription' },
+    { id:'settings', icon:'fa-cog', label:'Settings' },
+  ];
+
+  const logout = () => { sessionStorage.clear(); setAuthed(false); setUser(null); };
+
+  return (
+    <div className="layout">
+      <button className="hamburger" onClick={()=>setSidebarOpen(!sidebarOpen)}>
+        <i className={`fas ${sidebarOpen?'fa-times':'fa-bars'}`}/>
+      </button>
+      <div className={`sidebar ${sidebarOpen?'open':''}`}>
+        <div className="logo"><i className="fas fa-bolt"/> ClosePro</div>
+        <div className="tagline">AI Sales Assistant</div>
+        {nav.map(n =>
+          <div key={n.id} className={`nav-item ${page===n.id?'active':''}`}
+               onClick={()=>{setPage(n.id);setSidebarOpen(false)}}>
+            <i className={`fas ${n.icon}`}/> {n.label}
+          </div>
+        )}
+        <div className="sidebar-footer">
+          {user && <>
+            <div className="plan-badge">{user.plan} plan</div>
+            <div className="user-email">{user.email}</div>
+          </>}
+          <button className="btn btn-sm btn-secondary" style={{marginTop:10,width:'100%'}} onClick={logout}>
+            <i className="fas fa-sign-out-alt"/> Log Out
+          </button>
+        </div>
+      </div>
+      <div className="main">
+        {page==='dashboard' && <Dashboard />}
+        {page==='ai-reply' && <AIReply leads={leads}/>}
+        {page==='leads' && <LeadTracker leads={leads} refreshLeads={refreshLeads} showToast={showToast}/>}
+        {page==='followups' && <FollowUps showToast={showToast}/>}
+        {page==='subscription' && <Subscription user={user} showToast={showToast}/>}
+        {page==='settings' && <Settings user={user} refreshUser={refreshUser} showToast={showToast}/>}
+      </div>
+      {toast && <Toast message={toast} onClose={()=>setToast('')}/>}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

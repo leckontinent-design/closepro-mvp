@@ -1,0 +1,12 @@
+# ClosePro MVP — Python Dependencies
+# Install with: pip install -r requirements.txt
+
+# Core server (likely already installed on most systems)
+tornado>=6.0
+
+# JWT authentication (likely already installed)
+PyJWT>=2.0
+
+# Optional: AI integrations (add your API key in .env)
+# openai>=1.0        # Uncomment if using OpenAI
+# anthropic>=0.18    # Uncomment if using Anthropic/Claude
