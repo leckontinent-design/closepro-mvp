@@ -3,16 +3,16 @@ ClosePro MVP — AI-Powered Sales Assistant for SMEs
 Backend: Tornado (stdlib-compatible, no Flask needed)
 DB: SQLite | Auth: PyJWT | AI: OpenAI / Anthropic / built-in fallback
 """
-
+ 
 import os, sys, json, csv, io, hashlib, secrets, sqlite3, re
 from datetime import datetime, timedelta
 from functools import wraps
-
+ 
 import jwt                          # PyJWT — already installed
 import tornado.ioloop
 import tornado.web
 import tornado.log
-
+ 
 # ─── Config ──────────────────────────────────────────────────────────────────
 SECRET_KEY   = os.environ.get("SECRET_KEY", secrets.token_hex(32))
 AI_PROVIDER  = os.environ.get("AI_PROVIDER", "openai")
@@ -21,7 +21,7 @@ ANTHROPIC_KEY= os.environ.get("ANTHROPIC_API_KEY", "")
 _HERE        = os.path.dirname(os.path.abspath(__file__))
 DB_PATH      = os.environ.get("DB_PATH", os.path.join(_HERE, "closepro.db"))
 PORT         = int(os.environ.get("PORT", 5000))
-
+ 
 # ─── Database ────────────────────────────────────────────────────────────────
 def get_db():
     conn = sqlite3.connect(DB_PATH)
@@ -32,7 +32,7 @@ def get_db():
         pass                                       # skip on network mounts
     conn.execute("PRAGMA foreign_keys=ON")
     return conn
-
+ 
 def init_db():
     conn = get_db()
     conn.executescript("""
@@ -95,30 +95,30 @@ def init_db():
     """)
     conn.commit(); conn.close()
     print("  ✓ Database initialised")
-
+ 
 # ─── Auth helpers ────────────────────────────────────────────────────────────
 def hash_pw(pw):
     salt = secrets.token_hex(16)
     h = hashlib.pbkdf2_hmac("sha256", pw.encode(), salt.encode(), 100_000)
     return f"{salt}:{h.hex()}"
-
+ 
 def verify_pw(stored, provided):
     try:
         salt, h = stored.split(":")
         return hashlib.pbkdf2_hmac("sha256", provided.encode(), salt.encode(), 100_000).hex() == h
     except Exception:
         return False
-
+ 
 def make_token(uid, email):
     return jwt.encode(
         {"user_id": uid, "email": email,
          "exp": datetime.utcnow() + timedelta(days=30)},
         SECRET_KEY, algorithm="HS256"
     )
-
+ 
 def decode_token(token):
     return jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-
+ 
 # ─── AI Engine ───────────────────────────────────────────────────────────────
 def ai_reply(customer_msg, ctx=None):
     ctx = ctx or {}
@@ -126,12 +126,12 @@ def ai_reply(customer_msg, ctx=None):
     tone  = ctx.get("tone", "friendly")
     industry = ctx.get("industry", "")
     name  = ctx.get("lead_name", "")
-
+ 
     system = (f"You are ClosePro, an AI sales assistant for '{biz}' ({industry}). "
               f"Tone: {tone}. Lead name: {name or 'customer'}. "
               f"Reply to the customer's WhatsApp message: be helpful, persuasive, warm. "
               f"Include a clear call-to-action. Under 150 words. Sound human.")
-
+ 
     if ANTHROPIC_KEY and AI_PROVIDER == "anthropic":
         try:
             import anthropic
@@ -142,7 +142,7 @@ def ai_reply(customer_msg, ctx=None):
             return r.content[0].text
         except Exception as e:
             print(f"Anthropic error: {e}")
-
+ 
     if OPENAI_KEY:
         try:
             import openai
@@ -155,9 +155,9 @@ def ai_reply(customer_msg, ctx=None):
             return r.choices[0].message.content
         except Exception as e:
             print(f"OpenAI error: {e}")
-
+ 
     return _fallback(customer_msg, name, biz)
-
+ 
 def _fallback(msg, name, biz):
     hi = f"Hi {name}! " if name else "Hi there! "
     m  = msg.lower()
@@ -180,7 +180,7 @@ def _fallback(msg, name, biz):
             f"I'd love to help — could you share a bit more "
             f"about what you're looking for? "
             f"I'll get back to you with the best option. 🙌")
-
+ 
 def gen_followup_sequence(lead_name, product, biz, tone="friendly"):
     msgs = [
         {"day":0,  "message": f"Hi {lead_name}! 👋 Thanks for your interest in {product}. We still have it available — would you like to proceed? Reply YES and I'll sort everything out for you. — {biz}"},
@@ -190,7 +190,7 @@ def gen_followup_sequence(lead_name, product, biz, tone="friendly"):
         {"day":14, "message": f"Hi {lead_name}, last message from us — don't want to bother you! 😊 If you're still interested in {product}, we're here anytime. Hope to serve you! — {biz}"},
     ]
     return msgs
-
+ 
 # ─── Base Handler ────────────────────────────────────────────────────────────
 class BaseHandler(tornado.web.RequestHandler):
     def set_default_headers(self):
@@ -198,20 +198,20 @@ class BaseHandler(tornado.web.RequestHandler):
         self.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
         self.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
         self.set_header("Content-Type", "application/json")
-
+ 
     def options(self, *args):
         self.set_status(204); self.finish()
-
+ 
     def json(self, data, status=200):
         self.set_status(status)
         self.write(json.dumps(data, default=str))
-
+ 
     def body(self):
         try:
             return json.loads(self.request.body or b"{}")
         except Exception:
             return {}
-
+ 
     def get_user(self):
         auth = self.request.headers.get("Authorization", "")
         token = auth.replace("Bearer ", "").strip()
@@ -223,7 +223,7 @@ class BaseHandler(tornado.web.RequestHandler):
             self.json({"error":"Token expired"}, 401); return None
         except Exception:
             self.json({"error":"Invalid token"}, 401); return None
-
+ 
 # ─── Auth Handlers ───────────────────────────────────────────────────────────
 class SignupHandler(BaseHandler):
     def post(self):
@@ -251,7 +251,7 @@ class SignupHandler(BaseHandler):
             self.json({"token":make_token(uid,email),"user_id":uid,"email":email}, 201)
         finally:
             conn.close()
-
+ 
 class LoginHandler(BaseHandler):
     def post(self):
         d = self.body()
@@ -267,7 +267,7 @@ class LoginHandler(BaseHandler):
                        "industry":u["industry"], "plan":u["plan"]})
         finally:
             conn.close()
-
+ 
 class MeHandler(BaseHandler):
     def get(self):
         u = self.get_user();
@@ -280,7 +280,7 @@ class MeHandler(BaseHandler):
                        "industry":row["industry"],"tone":row["tone"],"plan":row["plan"]})
         finally:
             conn.close()
-
+ 
 class SettingsHandler(BaseHandler):
     def put(self):
         u = self.get_user();
@@ -294,7 +294,7 @@ class SettingsHandler(BaseHandler):
             conn.commit(); self.json({"ok":True})
         finally:
             conn.close()
-
+ 
 # ─── Dashboard ───────────────────────────────────────────────────────────────
 class DashboardHandler(BaseHandler):
     def get(self):
@@ -319,7 +319,7 @@ class DashboardHandler(BaseHandler):
                        "recent_leads":recent,"upcoming_followups":upcoming})
         finally:
             conn.close()
-
+ 
 # ─── AI Handlers ─────────────────────────────────────────────────────────────
 class AIReplyHandler(BaseHandler):
     def post(self):
@@ -343,7 +343,7 @@ class AIReplyHandler(BaseHandler):
             self.json({"reply":reply})
         finally:
             conn.close()
-
+ 
 class AISequenceHandler(BaseHandler):
     def post(self):
         u = self.get_user();
@@ -368,7 +368,7 @@ class AISequenceHandler(BaseHandler):
             self.json({"sequence":seq,"count":len(seq)})
         finally:
             conn.close()
-
+ 
 # ─── Lead Handlers ───────────────────────────────────────────────────────────
 class LeadsHandler(BaseHandler):
     def get(self):
@@ -384,7 +384,7 @@ class LeadsHandler(BaseHandler):
             self.json([dict(r) for r in rows])
         finally:
             conn.close()
-
+ 
     def post(self):
         u = self.get_user();
         if not u: return
@@ -400,7 +400,7 @@ class LeadsHandler(BaseHandler):
             self.json(dict(conn.execute("SELECT * FROM leads WHERE id=?",(lid,)).fetchone()),201)
         finally:
             conn.close()
-
+ 
 class LeadHandler(BaseHandler):
     def put(self, lid):
         u = self.get_user();
@@ -419,7 +419,7 @@ class LeadHandler(BaseHandler):
             self.json(dict(conn.execute("SELECT * FROM leads WHERE id=?",(lid,)).fetchone()))
         finally:
             conn.close()
-
+ 
     def delete(self, lid):
         u = self.get_user();
         if not u: return
@@ -431,7 +431,7 @@ class LeadHandler(BaseHandler):
             conn.commit(); self.json({"ok":True})
         finally:
             conn.close()
-
+ 
 # ─── Follow-up Handlers ──────────────────────────────────────────────────────
 class FollowupsHandler(BaseHandler):
     def get(self):
@@ -446,7 +446,7 @@ class FollowupsHandler(BaseHandler):
             self.json([dict(r) for r in rows])
         finally:
             conn.close()
-
+ 
 class FollowupSendHandler(BaseHandler):
     def post(self, fid):
         u = self.get_user();
@@ -458,7 +458,7 @@ class FollowupSendHandler(BaseHandler):
             conn.commit(); self.json({"ok":True})
         finally:
             conn.close()
-
+ 
 class FollowupSkipHandler(BaseHandler):
     def post(self, fid):
         u = self.get_user();
@@ -469,7 +469,7 @@ class FollowupSkipHandler(BaseHandler):
             conn.commit(); self.json({"ok":True})
         finally:
             conn.close()
-
+ 
 # ─── Conversations ───────────────────────────────────────────────────────────
 class ConversationsHandler(BaseHandler):
     def get(self):
@@ -485,7 +485,7 @@ class ConversationsHandler(BaseHandler):
             self.json([dict(r) for r in rows])
         finally:
             conn.close()
-
+ 
 # ─── Subscription ────────────────────────────────────────────────────────────
 class SubscriptionHandler(BaseHandler):
     def get(self):
@@ -497,7 +497,7 @@ class SubscriptionHandler(BaseHandler):
             self.json(dict(row) if row else {"plan":"free","status":"none"})
         finally:
             conn.close()
-
+ 
     def post(self):
         u = self.get_user();
         if not u: return
@@ -514,7 +514,7 @@ class SubscriptionHandler(BaseHandler):
             conn.commit(); self.json({"plan":plan,"amount":amount,"expires_at":exp})
         finally:
             conn.close()
-
+ 
 # ─── Export ──────────────────────────────────────────────────────────────────
 class ExportLeadsHandler(BaseHandler):
     def get(self):
@@ -534,19 +534,68 @@ class ExportLeadsHandler(BaseHandler):
             self.write(buf.getvalue())
         finally:
             conn.close()
-
-# ─── Static (serve React frontend) ──────────────────────────────────────────
-class StaticHandler(tornado.web.StaticFileHandler):
-    def validate_absolute_path(self, root, absolute_path):
-        # Always serve index.html for unknown routes (SPA)
-        if not os.path.exists(absolute_path) or os.path.isdir(absolute_path):
-            return os.path.join(root, "index.html")
-        return absolute_path
-
+ 
+# ─── Frontend Handler (replaces StaticFileHandler — never crashes) ────────────
+class FrontendHandler(tornado.web.RequestHandler):
+    """Reads and serves HTML files directly. Shows a diagnostic page if files are missing."""
+    def set_default_headers(self):
+        # Override to allow HTML content-type (not JSON)
+        pass
+ 
+    def get(self, path=""):
+        static_dir = os.path.join(_HERE, "static")
+ 
+        # Route: /landing.html → landing.html, everything else → index.html (SPA)
+        if path.strip("/") == "landing.html":
+            filename = "landing.html"
+        else:
+            filename = "index.html"
+ 
+        filepath = os.path.join(static_dir, filename)
+ 
+        if os.path.exists(filepath):
+            self.set_header("Content-Type", "text/html; charset=utf-8")
+            with open(filepath, "r", encoding="utf-8") as f:
+                self.write(f.read())
+        else:
+            # Diagnostic page — tells us exactly what's missing
+            self.set_status(200)
+            self.set_header("Content-Type", "text/html; charset=utf-8")
+            self.write(f"""<!DOCTYPE html>
+<html><head><title>ClosePro — Setup Required</title>
+<style>body{{font-family:sans-serif;max-width:640px;margin:80px auto;padding:0 20px;text-align:center}}
+code{{background:#f0f0f0;padding:3px 8px;border-radius:4px;font-size:.9em}}</style></head>
+<body>
+<h1>⚡ ClosePro Backend is Running!</h1>
+<p style="color:green;font-weight:bold">✓ Server is healthy. Port, database, and auth are all working.</p>
+<hr/>
+<h2>⚠️ Frontend file not found</h2>
+<p>The file <code>static/{filename}</code> is missing from your deployment.</p>
+<p>This means the <code>static/</code> folder was not uploaded to GitHub.</p>
+<h3>Fix: Upload the static folder to GitHub</h3>
+<ol style="text-align:left">
+  <li>Go to your GitHub repo</li>
+  <li>Click <strong>Add file → Upload files</strong></li>
+  <li>Drag both <code>static/index.html</code> and <code>static/landing.html</code> into the upload box</li>
+  <li>Click <strong>Commit changes</strong></li>
+  <li>Railway will redeploy automatically</li>
+</ol>
+<p>Expected path on server: <code>{filepath}</code></p>
+</body></html>""")
+ 
+ 
+# ─── Health Check ─────────────────────────────────────────────────────────────
+class HealthHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.set_header("Content-Type", "application/json")
+        self.write(json.dumps({"status": "ok", "app": "ClosePro"}))
+ 
+ 
 # ─── App Factory ─────────────────────────────────────────────────────────────
 def make_app():
-    static_path = os.path.join(_HERE, "static")
     return tornado.web.Application([
+        # Health check (Railway uses this)
+        (r"/health",            HealthHandler),
         # Auth
         (r"/api/auth/signup",   SignupHandler),
         (r"/api/auth/login",    LoginHandler),
@@ -570,10 +619,10 @@ def make_app():
         (r"/api/subscription",  SubscriptionHandler),
         # Export
         (r"/api/export/leads",  ExportLeadsHandler),
-        # Static (catch-all — must be last)
-        (r"/(.*)", StaticHandler, {"path": static_path, "default_filename": "index.html"}),
+        # Frontend — catch-all (must be last)
+        (r"/(.*)", FrontendHandler),
     ], debug=False)
-
+ 
 # ─── Boot ────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     # Load .env file if present
@@ -588,12 +637,12 @@ if __name__ == "__main__":
         # Re-read env vars after loading .env
         OPENAI_KEY    = os.environ.get("OPENAI_API_KEY", "")
         ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
-
+ 
     init_db()
-
+ 
     ai_status = ("OpenAI ✓" if OPENAI_KEY else "") or \
                 ("Anthropic ✓" if ANTHROPIC_KEY else "Fallback mode (no API key)")
-
+ 
     print(f"""
 ╔══════════════════════════════════════════════════════╗
 ║              CLOSEPRO MVP — Running!                 ║
@@ -604,7 +653,7 @@ if __name__ == "__main__":
 ║  Press Ctrl+C to stop                                ║
 ╚══════════════════════════════════════════════════════╝
     """)
-
+ 
     app = make_app()
-    app.listen(PORT)
+    app.listen(PORT, address="0.0.0.0")   # must bind to 0.0.0.0 for Railway
     tornado.ioloop.IOLoop.current().start()
